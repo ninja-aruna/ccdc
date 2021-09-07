@@ -15,35 +15,14 @@ namespace Infrastructure.Persistence.Repository
     {
         private readonly ApplicationDbContext _dbContext;
 
-        private static HttpClient _httpClient;
-
-        public GenericRepositoryAsync(ApplicationDbContext dbContext, HttpClient httpClient = null)
+        public GenericRepositoryAsync(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
-            _httpClient = httpClient ?? new HttpClient();
         }
 
         public virtual async Task<T> GetByIdAsync(int id)
         {
             return await _dbContext.Set<T>().FindAsync(id);
-        }
-
-        public async Task<IReadOnlyList<T>> GetPagedReponseAsync(int pageNumber, int pageSize)
-        {
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri("https://api.test.datacite.org/dois?query=prefix:10.5517")
-            };
-
-            var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-
-            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            var jobject = JObject.Parse(responseBody);
-            var structures = JsonConvert.DeserializeObject<IReadOnlyList<T>>(jobject["data"].ToString());
-            return structures;
         }
 
         public async Task<T> AddAsync(T entity)
